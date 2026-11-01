@@ -29,6 +29,8 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS client (cloud sync, any-PC) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
         body {
@@ -147,6 +149,11 @@
                     <input type="file" accept=".json" class="hidden" onchange="restoreSystemBackup(event)">
                 </label>
 
+                <button onclick="exportDataJson()" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-xs font-medium py-2 px-3 rounded-lg inline-flex items-center gap-1.5 transition" title="বর্তমান ডাটা data.json হিসেবে ডাউনলোড">
+                    <i data-lucide="file-json" class="w-4 h-4 text-amber-400"></i>
+                    <span>data.json</span>
+                </button>
+
                 <button onclick="openProductModal()" class="bg-brand-accent hover:bg-opacity-90 text-white text-xs font-semibold py-2 px-3.5 rounded-lg inline-flex items-center gap-1.5 transition shadow">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i>
                     <span>নতুন পোশাক যোগ</span>
@@ -195,6 +202,10 @@
                     <input type="file" accept=".json" class="hidden" onchange="restoreSystemBackup(event)">
                 </label>
             </div>
+            <button onclick="exportDataJson()" class="w-full bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-amber-300 text-xs">
+                <i data-lucide="file-json" class="w-4 h-4"></i>
+                <span>data.json ডাউনলোড</span>
+            </button>
             <div class="flex items-center justify-between pt-2 border-t border-brand-700/60 text-xs">
                 <button onclick="openSecurityModal()" class="text-slate-300 flex items-center gap-1.5 py-1">
                     <i data-lucide="key" class="w-4 h-4 text-amber-400"></i> পাসওয়ার্ড পরিবর্তন
@@ -633,6 +644,23 @@
         const STORE_PRODUCTS = 'products';
         const STORE_SETTINGS = 'settings';
         const DEFAULT_PASS = '1234';
+        // Supabase cloud backend (project: ims-inventory, Mumbai)
+        // Anon key is a PUBLIC client key (safe to ship in browser JS).
+        // Never put the service_role key here.
+        const SUPABASE_URL = 'https://ideldbfjjpsbyrkffkzf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkZWxkYmZqanBzYnlya2Zma3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1Mjk0NDMsImV4cCI6MjEwOTEwNTQ0M30.PtedjpNb3RWlSEhQA2h0nonrbJ_dIbQQw4jSM-cty7k';
+        let supabaseClient = null;
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) { console.warn('Supabase client init failed, falling back to local DB:', e); }
+        function productToRow(p) {
+            return { id: String(p.id), sku: p.sku, name: p.name, category: p.category || null, size: p.size || null, color: p.color || null, fabric: p.fabric || null, cost: Number(p.cost) || 0, price: Number(p.price) || 0, stock: Number(p.stock) || 0, reorder_level: Number(p.reorderLevel) || 10, image: p.image || null, updated_at: new Date().toISOString() };
+        }
+        function rowToProduct(r) {
+            return { id: String(r.id), sku: r.sku, name: r.name, category: r.category, size: r.size, color: r.color, fabric: r.fabric, cost: Number(r.cost) || 0, price: Number(r.price) || 0, stock: Number(r.stock) || 0, reorderLevel: Number(r.reorder_level) || 10, image: r.image };
+        }
 
         let db = null;
         let products = [];
@@ -959,7 +987,7 @@
             });
         }
 
-        async function loadAllProductsFromDB() {
+        async function loadAllProductsFromIDB() {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction([STORE_PRODUCTS], 'readonly');
                 const store = tx.objectStore(STORE_PRODUCTS);
@@ -969,7 +997,7 @@
             });
         }
 
-        async function saveProductToDB(product) {
+        async function saveProductToIDB(product) {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction([STORE_PRODUCTS], 'readwrite');
                 const store = tx.objectStore(STORE_PRODUCTS);
@@ -979,7 +1007,7 @@
             });
         }
 
-        async function deleteProductFromDB(id) {
+        async function deleteProductFromIDB(id) {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction([STORE_PRODUCTS], 'readwrite');
                 const store = tx.objectStore(STORE_PRODUCTS);
@@ -987,6 +1015,45 @@
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
             });
+        }
+
+        // ==================== SUPABASE CLOUD CRUD (primary) ====================
+        // Any-PC sync: products live in Supabase, not only in this browser.
+        // If Supabase is unreachable, fall back to the local IndexedDB copy.
+        async function loadAllProductsFromDB() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('products').select('*').order('sku');
+                    if (error) throw error;
+                    const rows = (data || []).map(rowToProduct);
+                    // Refresh local cache silently (best-effort, never blocks)
+                    try { for (const pr of rows) { await saveProductToIDB(pr); } } catch (e) {}
+                    return rows;
+                } catch (e) { console.warn('Supabase load failed, using local DB:', e); }
+            }
+            return await loadAllProductsFromIDB();
+        }
+        async function saveProductToDB(product) {
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient.from('products').upsert(productToRow(product));
+                    if (error) throw error;
+                    try { await saveProductToIDB(product); } catch (e) {}
+                    return;
+                } catch (e) { console.warn('Supabase save failed, using local DB:', e); }
+            }
+            return await saveProductToIDB(product);
+        }
+        async function deleteProductFromDB(id) {
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient.from('products').delete().eq('id', String(id));
+                    if (error) throw error;
+                    try { await deleteProductFromIDB(id); } catch (e) {}
+                    return;
+                } catch (e) { console.warn('Supabase delete failed, using local DB:', e); }
+            }
+            return await deleteProductFromIDB(id);
         }
 
         async function getSetting(key) {
@@ -1149,14 +1216,32 @@
             }
         ];
 
+        async function loadSeedFromDataJson() {
+            try {
+                const res = await fetch('data.json', { cache: 'no-store' });
+                if (!res.ok) return null;
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) return data;
+                return null;
+            } catch (err) {
+                return null;
+            }
+        }
+
         async function seedInitialDataIfEmpty() {
             const list = await loadAllProductsFromDB();
             if (list.length === 0) {
-                for (const p of DEMO_APPAREL) {
+                const jsonSeed = await loadSeedFromDataJson();
+                const seed = jsonSeed || DEMO_APPAREL;
+                for (const p of seed) {
+                    if (!p.image) p.image = PLACEHOLDER_IMG;
                     await saveProductToDB(p);
                 }
             }
             products = await loadAllProductsFromDB();
+            for (const pr of products) {
+                if (pr.category && !categories.includes(pr.category)) categories.push(pr.category);
+            }
         }
 
         // ==================== 5. RENDERING & STATS ====================
@@ -1544,6 +1629,15 @@
             showToast('সম্পূর্ণ ডাটাবেজ ব্যাকআপ ডাউনলোড হয়েছে', 'hard-drive-download');
         }
 
+        function exportDataJson() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "data.json");
+            dlAnchor.click();
+            showToast('data.json ডাউনলোড হয়েছে — এটাই repo-র data.json হিসেবে আপলোড করলে পরের বার এই ডাটাই লোড হবে', 'file-json');
+        }
+
         function restoreSystemBackup(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1617,4 +1711,4 @@
         };
     </script>
 </body>
-</html><!-- Pages rebuild trigger: no visual change -->
+</html>
