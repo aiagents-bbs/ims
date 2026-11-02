@@ -373,6 +373,7 @@
                             <th class="p-3 text-right">বিক্রয় (৳)</th>
                             <th class="p-3 text-center">বর্তমান স্টক</th>
                             <th class="p-3 text-center">স্ট্যাটাস</th>
+                            <th class="p-3 text-center">তারিখ</th>
                             <th class="p-3 text-center">অ্যাকশন</th>
                         </tr>
                     </thead>
@@ -747,10 +748,10 @@
             }
         } catch (e) { console.warn('Supabase client init failed, falling back to local DB:', e); }
         function productToRow(p) {
-            return { id: String(p.id), sku: p.sku, name: p.name, category: p.category || null, size: p.size || null, color: p.color || null, fabric: p.fabric || null, cost: Number(p.cost) || 0, price: Number(p.price) || 0, stock: Number(p.stock) || 0, reorder_level: Number(p.reorderLevel) || 10, image: p.image || null, updated_at: new Date().toISOString() };
+            return { id: String(p.id), sku: p.sku, name: p.name, category: p.category || null, size: p.size || null, color: p.color || null, fabric: p.fabric || null, cost: Number(p.cost) || 0, price: Number(p.price) || 0, stock: Number(p.stock) || 0, reorder_level: Number(p.reorderLevel) || 10, image: p.image || null, created_at: p.created_at || new Date().toISOString(), updated_at: new Date().toISOString() };
         }
         function rowToProduct(r) {
-            return { id: String(r.id), sku: r.sku, name: r.name, category: r.category, size: r.size, color: r.color, fabric: r.fabric, cost: Number(r.cost) || 0, price: Number(r.price) || 0, stock: Number(r.stock) || 0, reorderLevel: Number(r.reorder_level) || 10, image: r.image };
+            return { id: String(r.id), sku: r.sku, name: r.name, category: r.category, size: r.size, color: r.color, fabric: r.fabric, cost: Number(r.cost) || 0, price: Number(r.price) || 0, stock: Number(r.stock) || 0, reorderLevel: Number(r.reorder_level) || 10, image: r.image, created_at: r.created_at || null };
         }
 
         let db = null;
@@ -1400,6 +1401,7 @@
                             <span class="text-sm font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-lg">${stock}</span>
                         </td>
                         <td class="p-3 text-center text-xs ${statusClass}">${statusLabel}</td>
+                        <td class="p-3 text-center text-xs whitespace-nowrap">${fmtProductDate(p.created_at)}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 ${stock > 0 ? `
@@ -1514,6 +1516,7 @@
                 const initialStock = Number(document.getElementById('pInitialStock').value) || 0;
                 const newProduct = {
                     id: Date.now().toString(),
+                    created_at: new Date().toISOString(),
                     sku,
                     name,
                     category,
@@ -1765,6 +1768,7 @@
             stockMovements.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             return stockMovements;
         }
+        function fmtProductDate(iso) { try { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-GB'); } catch (e) { return '—'; } }
         function fmtHistDate(iso) { try { const d = new Date(iso); return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso || ''; } }
         async function openHistoryModal(opts) {
             opts = opts || {};
@@ -1882,6 +1886,7 @@
                 'বর্তমান স্টক (পিস)': Number(p.stock) || 0,
                 'মোট স্টক ভ্যালু (৳)': (Number(p.stock) || 0) * (Number(p.cost) || 0),
                 'রি-অর্ডার সতর্কতা সীমা': Number(p.reorderLevel) || 10,
+                'যোগের তারিখ': fmtProductDate(p.created_at),
                 'স্ট্যাটাস': (Number(p.stock) || 0) === 0 ? 'স্টক শেষ' : (Number(p.stock) <= Number(p.reorderLevel) ? 'স্টক কম' : 'পর্যাপ্ত')
             }));
 
