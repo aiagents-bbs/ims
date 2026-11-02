@@ -149,6 +149,11 @@
                     <input type="file" accept=".json" class="hidden" onchange="restoreSystemBackup(event)">
                 </label>
 
+                <button onclick="openHistoryModal({})" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-xs font-medium py-2 px-3 rounded-lg inline-flex items-center gap-1.5 transition" title="মাসিক স্টক হিস্টোরি">
+                    <i data-lucide="history" class="w-4 h-4 text-cyan-400"></i>
+                    <span>হিস্টোরি</span>
+                </button>
+
                 <button onclick="exportDataJson()" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-xs font-medium py-2 px-3 rounded-lg inline-flex items-center gap-1.5 transition" title="বর্তমান ডাটা data.json হিসেবে ডাউনলোড">
                     <i data-lucide="file-json" class="w-4 h-4 text-amber-400"></i>
                     <span>data.json</span>
@@ -202,6 +207,10 @@
                     <input type="file" accept=".json" class="hidden" onchange="restoreSystemBackup(event)">
                 </label>
             </div>
+            <button onclick="openHistoryModal({})" class="w-full bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-cyan-300 text-xs">
+                <i data-lucide="history" class="w-4 h-4"></i>
+                <span>স্টক হিস্টোরি</span>
+            </button>
             <button onclick="exportDataJson()" class="w-full bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-amber-300 text-xs">
                 <i data-lucide="file-json" class="w-4 h-4"></i>
                 <span>data.json ডাউনলোড</span>
@@ -606,6 +615,15 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">রিজন / কোথায় গেল বা কোথা থেকে এলো <span class="text-rose-500">*</span></label>
+                    <div class="flex gap-2">
+                        <select id="stockActionReason" required class="flex-1 text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none"></select>
+                        <button type="button" onclick="openReasonManager()" class="px-3 py-2 bg-slate-800 text-white rounded-xl text-xs font-medium shrink-0">রিজন ম্যানেজ</button>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">যেমন: দোকান, অনলাইন, পাইকারি, ক্ষতি — রিজন নিজে বানিয়ে সেট করে রাখতে পারবেন।</p>
+                </div>
+
+                <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">বিবরণ / চালানের সূত্র (ঐচ্ছিক)</label>
                     <input type="text" id="stockActionRef" placeholder="যেমন: Lot #14 বা Website Order #542" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none">
                 </div>
@@ -617,6 +635,77 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Stock History Modal (monthly + full, by reason) -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-200">
+            <div class="sticky top-0 bg-white border-b border-slate-100 px-5 py-3.5 flex items-center justify-between z-10">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5 text-brand-accent"></i> স্টক হিস্টোরি</h3>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-4 sm:p-5 space-y-4">
+                <p class="text-[11px] text-slate-500">নোট: এই হিস্টোরি এখন থেকে রেকর্ড হবে। এই আপডেটের আগের স্টক ইন/আউট-এর কোনো লগ ছিল না, তাই পুরনো মুভমেন্ট এখানে আসবে না।</p>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">মাস</label>
+                        <input type="month" id="histMonth" onchange="renderHistory()" class="w-full px-2 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">পোশাক</label>
+                        <select id="histProduct" onchange="renderHistory()" class="w-full px-2 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">রিজন</label>
+                        <select id="histReason" onchange="renderHistory()" class="w-full px-2 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ধরন</label>
+                        <select id="histType" onchange="renderHistory()" class="w-full px-2 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none">
+                            <option value="ALL">সব</option>
+                            <option value="IN">ইন</option>
+                            <option value="OUT">আউট</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <button onclick="showFullHistory()" class="px-3 py-2 bg-slate-800 text-white rounded-xl font-medium">ফুল হিস্টোরি</button>
+                    <button onclick="showCurrentMonthHistory()" class="px-3 py-2 border border-slate-300 rounded-xl font-medium">এই মাস</button>
+                    <button onclick="exportHistoryToExcel()" class="px-3 py-2 bg-emerald-600 text-white rounded-xl font-medium">এক্সেল এক্সপোর্ট</button>
+                    <button onclick="openReasonManager()" class="px-3 py-2 border border-slate-300 rounded-xl font-medium">রিজন ম্যানেজ</button>
+                </div>
+                <div id="histSummary" class="grid grid-cols-3 gap-2 text-center"></div>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-800 mb-2">রিজন অনুযায়ী সামারি — কত পিস কোথায় গেছে / কোথা থেকে এসেছে</h4>
+                    <div class="overflow-x-auto custom-scroll"><table class="w-full text-xs text-left"><thead class="bg-slate-100"><tr><th class="p-2">রিজন</th><th class="p-2 text-right">ইন (পিস)</th><th class="p-2 text-right">আউট (পিস)</th><th class="p-2 text-right">নেট</th><th class="p-2 text-center">ট্রানজেকশন</th></tr></thead><tbody id="histByReasonBody"></tbody></table></div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-800 mb-2">ট্রানজেকশন ডিটেইলস</h4>
+                    <div class="overflow-x-auto custom-scroll"><table class="w-full text-xs text-left"><thead class="bg-slate-100"><tr><th class="p-2">তারিখ</th><th class="p-2">পোশাক</th><th class="p-2">ধরন</th><th class="p-2 text-right">পরিমাণ</th><th class="p-2">রিজন</th><th class="p-2">সূত্র</th><th class="p-2 text-center">আগে → পরে</th></tr></thead><tbody id="histTxBody"></tbody></table></div>
+                    <p id="histEmpty" class="hidden text-center text-xs text-slate-500 py-4">এই ফিল্টারে কোনো ট্রানজেকশন নেই।</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reason Manager Modal -->
+    <div id="reasonModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[92vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-200">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900">রিজন ম্যানেজ করুন</h3>
+                <button onclick="closeReasonManager()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 space-y-4 text-xs">
+                <form onsubmit="addReasonSubmit(event)" class="flex gap-2">
+                    <input type="text" id="newReasonLabel" required placeholder="নতুন রিজন, যেমন: দোকান - মিরপুর" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none">
+                    <select id="newReasonType" class="px-2 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none"><option value="OUT">আউট</option><option value="IN">ইন</option></select>
+                    <button type="submit" class="px-3 py-2 bg-brand-800 text-white rounded-xl font-medium">যোগ করুন</button>
+                </form>
+                <div id="reasonList"></div>
+                <button onclick="restoreDefaultReasons()" class="w-full py-2 border border-slate-300 rounded-xl font-medium">ডিফল্ট রিজন ফিরিয়ে আনুন</button>
+                <p class="text-slate-400">রিজন মুছলে পুরনো হিস্টোরির রিজন লেখাটা থেকে যাবে, শুধু নতুন করে আর বাছা যাবে না।</p>
+            </div>
         </div>
     </div>
 
@@ -640,7 +729,9 @@
     <script>
         // Default Configuration
         const DB_NAME = 'VogueStockClothingDB';
-        const DB_VERSION = 1;
+        const DB_VERSION = 2;
+        const STORE_MOVEMENTS = 'movements';
+        const STORE_REASONS = 'reasons';
         const STORE_PRODUCTS = 'products';
         const STORE_SETTINGS = 'settings';
         const DEFAULT_PASS = '1234';
@@ -978,6 +1069,12 @@
                     if (!dbInstance.objectStoreNames.contains(STORE_SETTINGS)) {
                         dbInstance.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
                     }
+                    if (!dbInstance.objectStoreNames.contains(STORE_MOVEMENTS)) {
+                        dbInstance.createObjectStore(STORE_MOVEMENTS, { keyPath: 'id' });
+                    }
+                    if (!dbInstance.objectStoreNames.contains(STORE_REASONS)) {
+                        dbInstance.createObjectStore(STORE_REASONS, { keyPath: 'id' });
+                    }
                 };
                 request.onsuccess = (e) => {
                     db = e.target.result;
@@ -1309,6 +1406,7 @@
                                 <button onclick="openStockModal('${p.id}', 'OUT')" class="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs" title="স্টক আউট"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="editProduct('${p.id}')" class="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs" title="এডিট"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="confirmDelete('${p.id}')" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs" title="মুছুন"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="openHistoryModal({productId: '${p.id}', full: true})" class="p-1.5 bg-cyan-50 text-cyan-700 hover:bg-cyan-100 rounded-lg text-xs" title="ফুল হিস্টোরি"><i data-lucide="history" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -1448,7 +1546,7 @@
         }
 
         // ==================== 8. STOCK IN / OUT ACTIONS ====================
-        function openStockModal(productId, actionType) {
+        async function openStockModal(productId, actionType) {
             const p = products.find(x => x.id === productId);
             if (!p) return;
 
@@ -1476,12 +1574,241 @@
                 submitBtn.innerText = 'স্টক আউট করুন';
             }
 
+            await loadReasons();
+            populateReasonDropdown(actionType);
             document.getElementById('stockActionModal').classList.remove('hidden');
             lucide.createIcons();
         }
 
         function closeStockActionModal() {
             document.getElementById('stockActionModal').classList.add('hidden');
+        }
+
+
+        // ==================== STOCK HISTORY & REASONS ====================
+        let stockReasons = [];
+        let stockMovements = [];
+        const DEFAULT_REASONS = [
+            { label: 'ক্রয়', movement_type: 'IN' },
+            { label: 'কাস্টমার রিটার্ন', movement_type: 'IN' },
+            { label: 'উৎপাদন', movement_type: 'IN' },
+            { label: 'অন্যান্য ইন', movement_type: 'IN' },
+            { label: 'বিক্রি - দোকান', movement_type: 'OUT' },
+            { label: 'বিক্রি - অনলাইন', movement_type: 'OUT' },
+            { label: 'পাইকারি', movement_type: 'OUT' },
+            { label: 'ক্ষতি / নষ্ট', movement_type: 'OUT' },
+            { label: 'স্যাম্পল / গিফট', movement_type: 'OUT' },
+            { label: 'ট্রান্সফার', movement_type: 'OUT' },
+            { label: 'অন্যান্য আউট', movement_type: 'OUT' }
+        ];
+        async function loadReasonsFromIDB() {
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction([STORE_REASONS], 'readonly');
+                    const req = tx.objectStore(STORE_REASONS).getAll();
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = () => resolve([]);
+                } catch (e) { resolve([]); }
+            });
+        }
+        async function saveReasonToIDB(r) {
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction([STORE_REASONS], 'readwrite');
+                    const req = tx.objectStore(STORE_REASONS).put(r);
+                    req.onsuccess = () => resolve(); req.onerror = () => resolve();
+                } catch (e) { resolve(); }
+            });
+        }
+        async function deleteReasonFromIDB(id) {
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction([STORE_REASONS], 'readwrite');
+                    const req = tx.objectStore(STORE_REASONS).delete(id);
+                    req.onsuccess = () => resolve(); req.onerror = () => resolve();
+                } catch (e) { resolve(); }
+            });
+        }
+        async function loadReasons() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('stock_reasons').select('*').order('movement_type').order('label');
+                    if (error) throw error;
+                    stockReasons = data || [];
+                    if (stockReasons.length === 0) {
+                        const { error: insErr } = await supabaseClient.from('stock_reasons').insert(DEFAULT_REASONS.map(r => ({ label: r.label, movement_type: r.movement_type, is_default: true })));
+                        if (!insErr) {
+                            const { data: d2 } = await supabaseClient.from('stock_reasons').select('*').order('movement_type').order('label');
+                            stockReasons = d2 || stockReasons;
+                        }
+                    }
+                    return stockReasons;
+                } catch (e) { console.warn('Supabase reasons load failed, using local:', e); }
+            }
+            stockReasons = await loadReasonsFromIDB();
+            if (stockReasons.length === 0) {
+                for (const r of DEFAULT_REASONS) {
+                    const rec = { id: 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), label: r.label, movement_type: r.movement_type, is_default: true };
+                    await saveReasonToIDB(rec); stockReasons.push(rec);
+                }
+            }
+            return stockReasons;
+        }
+        function reasonsFor(type) { return stockReasons.filter(r => r.movement_type === type); }
+        function populateReasonDropdown(type) {
+            const sel = document.getElementById('stockActionReason');
+            if (!sel) return;
+            const list = reasonsFor(type);
+            sel.innerHTML = list.map(r => `<option value="${r.label}">${r.label}</option>`).join('');
+            if (list.length === 0) sel.innerHTML = '<option value="অন্যান্য">অন্যান্য</option>';
+        }
+        function openReasonManager() { renderReasonList(); document.getElementById('reasonModal').classList.remove('hidden'); lucide.createIcons(); }
+        function closeReasonManager() { document.getElementById('reasonModal').classList.add('hidden'); }
+        function renderReasonList() {
+            const el = document.getElementById('reasonList');
+            if (!el) return;
+            const inList = reasonsFor('IN'), outList = reasonsFor('OUT');
+            const renderGroup = (title, list) => `<h4 class="font-bold text-slate-800 mt-2 mb-1">${title}</h4>` + (list.length ? list.map(r => `<div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 mb-1"><span>${r.label}</span><button onclick="deleteReason('${r.id}')" class="text-rose-600 font-medium">মুছুন</button></div>`).join('') : '<p class="text-slate-400 px-1">কোনো রিজন নেই</p>');
+            el.innerHTML = renderGroup('ইন রিজন', inList) + renderGroup('আউট রিজন', outList);
+        }
+        async function addReasonSubmit(e) {
+            e.preventDefault();
+            const label = document.getElementById('newReasonLabel').value.trim();
+            const type = document.getElementById('newReasonType').value;
+            if (!label) return;
+            if (stockReasons.some(r => r.label.toLowerCase() === label.toLowerCase() && r.movement_type === type)) { showToast('এই রিজনটি ইতিমধ্যে আছে', 'alert-circle'); return; }
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('stock_reasons').insert({ label, movement_type: type, is_default: false }).select().single();
+                    if (error) throw error;
+                    stockReasons.push(data);
+                } catch (e) { console.warn('Supabase reason add failed:', e); const rec = { id: 'r-' + Date.now(), label, movement_type: type, is_default: false }; await saveReasonToIDB(rec); stockReasons.push(rec); }
+            } else {
+                const rec = { id: 'r-' + Date.now(), label, movement_type: type, is_default: false }; await saveReasonToIDB(rec); stockReasons.push(rec);
+            }
+            document.getElementById('newReasonLabel').value = '';
+            renderReasonList();
+            const st = document.getElementById('stockActionType') ? document.getElementById('stockActionType').value : type;
+            populateReasonDropdown(st);
+            const sel = document.getElementById('stockActionReason'); if (sel) sel.value = label;
+            showToast('নতুন রিজন যোগ হয়েছে', 'check');
+        }
+        async function deleteReason(id) {
+            if (supabaseClient) { try { await supabaseClient.from('stock_reasons').delete().eq('id', id); } catch (e) {} }
+            await deleteReasonFromIDB(id);
+            stockReasons = stockReasons.filter(r => String(r.id) !== String(id));
+            renderReasonList(); populateReasonDropdown(document.getElementById('stockActionType') ? document.getElementById('stockActionType').value : 'OUT');
+        }
+        async function restoreDefaultReasons() {
+            for (const r of DEFAULT_REASONS) {
+                if (!stockReasons.some(x => x.label === r.label && x.movement_type === r.movement_type)) {
+                    if (supabaseClient) { try { const { data } = await supabaseClient.from('stock_reasons').insert({ label: r.label, movement_type: r.movement_type, is_default: true }).select().single(); if (data) stockReasons.push(data); continue; } catch (e) {} }
+                    const rec = { id: 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), label: r.label, movement_type: r.movement_type, is_default: true }; await saveReasonToIDB(rec); stockReasons.push(rec);
+                }
+            }
+            renderReasonList(); showToast('ডিফল্ট রিজন ফিরিয়ে আনা হয়েছে', 'check');
+        }
+        async function loadMovementsFromIDB() {
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction([STORE_MOVEMENTS], 'readonly');
+                    const req = tx.objectStore(STORE_MOVEMENTS).getAll();
+                    req.onsuccess = () => resolve(req.result || []); req.onerror = () => resolve([]);
+                } catch (e) { resolve([]); }
+            });
+        }
+        async function saveMovementToIDB(m) {
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction([STORE_MOVEMENTS], 'readwrite');
+                    const req = tx.objectStore(STORE_MOVEMENTS).put(m);
+                    req.onsuccess = () => resolve(); req.onerror = () => resolve();
+                } catch (e) { resolve(); }
+            });
+        }
+        async function recordMovement(m) {
+            if (supabaseClient) {
+                try {
+                    const row = { product_id: String(m.product_id), sku: m.sku, product_name: m.product_name, movement_type: m.movement_type, qty: Number(m.qty) || 0, reason: m.reason, reference: m.reference || null, stock_before: Number(m.stock_before) || 0, stock_after: Number(m.stock_after) || 0, created_at: m.created_at || new Date().toISOString() };
+                    const { error } = await supabaseClient.from('stock_movements').insert(row);
+                    if (error) throw error;
+                    try { await saveMovementToIDB({ ...m, id: 'm-' + Date.now() }); } catch (e) {}
+                    return;
+                } catch (e) { console.warn('Supabase movement save failed, using local:', e); }
+            }
+            await saveMovementToIDB({ ...m, id: m.id || ('m-' + Date.now()) });
+        }
+        async function loadMovements() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(1000);
+                    if (error) throw error;
+                    stockMovements = (data || []).map(r => ({ id: r.id, product_id: r.product_id, sku: r.sku, product_name: r.product_name, movement_type: r.movement_type, qty: Number(r.qty) || 0, reason: r.reason, reference: r.reference, stock_before: Number(r.stock_before) || 0, stock_after: Number(r.stock_after) || 0, created_at: r.created_at }));
+                    return stockMovements;
+                } catch (e) { console.warn('Supabase movements load failed, using local:', e); }
+            }
+            stockMovements = await loadMovementsFromIDB();
+            stockMovements.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            return stockMovements;
+        }
+        function fmtHistDate(iso) { try { const d = new Date(iso); return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso || ''; } }
+        async function openHistoryModal(opts) {
+            opts = opts || {};
+            await loadMovements(); await loadReasons();
+            const prodSel = document.getElementById('histProduct');
+            prodSel.innerHTML = '<option value="ALL">সব পোশাক</option>' + products.map(pr => `<option value="${pr.id}">${pr.name} (${pr.sku})</option>`).join('');
+            prodSel.value = opts.productId || 'ALL';
+            const reasonSel = document.getElementById('histReason');
+            reasonSel.innerHTML = '<option value="ALL">সব রিজন</option>' + stockReasons.map(r => `<option value="${r.label}">${r.label} (${r.movement_type})</option>`).join('');
+            reasonSel.value = 'ALL';
+            const monthEl = document.getElementById('histMonth');
+            if (opts.full) { monthEl.value = ''; } else { monthEl.value = opts.month || new Date().toISOString().slice(0, 7); }
+            document.getElementById('histType').value = 'ALL';
+            document.getElementById('historyModal').classList.remove('hidden');
+            renderHistory(); lucide.createIcons();
+        }
+        function closeHistoryModal() { document.getElementById('historyModal').classList.add('hidden'); }
+        function showFullHistory() { document.getElementById('histMonth').value = ''; renderHistory(); }
+        function showCurrentMonthHistory() { document.getElementById('histMonth').value = new Date().toISOString().slice(0, 7); renderHistory(); }
+        function getFilteredMovements() {
+            const month = document.getElementById('histMonth').value;
+            const prod = document.getElementById('histProduct').value;
+            const reason = document.getElementById('histReason').value;
+            const type = document.getElementById('histType').value;
+            return stockMovements.filter(m => {
+                if (prod !== 'ALL' && String(m.product_id) !== String(prod)) return false;
+                if (reason !== 'ALL' && m.reason !== reason) return false;
+                if (type !== 'ALL' && m.movement_type !== type) return false;
+                if (month) { const d = new Date(m.created_at); const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); if (ym !== month) return false; }
+                return true;
+            });
+        }
+        function renderHistory() {
+            const list = getFilteredMovements();
+            const inTotal = list.filter(m => m.movement_type === 'IN').reduce((s, m) => s + m.qty, 0);
+            const outTotal = list.filter(m => m.movement_type === 'OUT').reduce((s, m) => s + m.qty, 0);
+            document.getElementById('histSummary').innerHTML = `<div class="bg-emerald-50 rounded-xl p-3"><p class="text-slate-500">মোট ইন</p><p class="text-lg font-bold text-emerald-700">${inTotal} পিস</p></div><div class="bg-rose-50 rounded-xl p-3"><p class="text-slate-500">মোট আউট</p><p class="text-lg font-bold text-rose-700">${outTotal} পিস</p></div><div class="bg-slate-100 rounded-xl p-3"><p class="text-slate-500">নেট / ট্রানজেকশন</p><p class="text-lg font-bold">${inTotal - outTotal} পিস / ${list.length}টি</p></div>`;
+            const byReason = {};
+            list.forEach(m => { if (!byReason[m.reason]) byReason[m.reason] = { in: 0, out: 0, count: 0 }; if (m.movement_type === 'IN') byReason[m.reason].in += m.qty; else byReason[m.reason].out += m.qty; byReason[m.reason].count += 1; });
+            const byBody = document.getElementById('histByReasonBody');
+            const reasonRows = Object.entries(byReason).sort((a, b) => (b[1].in + b[1].out) - (a[1].in + a[1].out));
+            byBody.innerHTML = reasonRows.length ? reasonRows.map(([reason, v]) => `<tr class="border-b border-slate-100"><td class="p-2 font-medium">${reason}</td><td class="p-2 text-right text-emerald-700 font-semibold">${v.in}</td><td class="p-2 text-right text-rose-700 font-semibold">${v.out}</td><td class="p-2 text-right font-bold">${v.in - v.out}</td><td class="p-2 text-center">${v.count}</td></tr>`).join('') : '<tr><td colspan="5" class="p-3 text-center text-slate-400">কোনো সামারি নেই</td></tr>';
+            const txBody = document.getElementById('histTxBody');
+            txBody.innerHTML = list.map(m => `<tr class="border-b border-slate-100"><td class="p-2 whitespace-nowrap">${fmtHistDate(m.created_at)}</td><td class="p-2"><span class="font-medium">${m.product_name || ''}</span><br><span class="text-slate-400 font-mono">${m.sku || ''}</span></td><td class="p-2"><span class="${m.movement_type === 'IN' ? 'text-emerald-700' : 'text-rose-700'} font-semibold">${m.movement_type === 'IN' ? 'ইন' : 'আউট'}</span></td><td class="p-2 text-right font-bold">${m.movement_type === 'IN' ? '+' : '-'}${m.qty}</td><td class="p-2">${m.reason || '-'}</td><td class="p-2">${m.reference || '-'}</td><td class="p-2 text-center">${m.stock_before} → ${m.stock_after}</td></tr>`).join('');
+            document.getElementById('histEmpty').classList.toggle('hidden', list.length > 0);
+        }
+        function exportHistoryToExcel() {
+            const list = getFilteredMovements();
+            if (list.length === 0) { showToast('এক্সপোর্ট করার মতো ট্রানজেকশন নেই', 'alert-circle'); return; }
+            const byReason = {};
+            list.forEach(m => { if (!byReason[m.reason]) byReason[m.reason] = { in: 0, out: 0, count: 0 }; if (m.movement_type === 'IN') byReason[m.reason].in += m.qty; else byReason[m.reason].out += m.qty; byReason[m.reason].count += 1; });
+            const summaryRows = Object.entries(byReason).map(([reason, v]) => ({ 'রিজন': reason, 'ইন (পিস)': v.in, 'আউট (পিস)': v.out, 'নেট': v.in - v.out, 'ট্রানজেকশন': v.count }));
+            const txRows = list.map(m => ({ 'তারিখ': fmtHistDate(m.created_at), 'পোশাক': m.product_name || '', 'SKU': m.sku || '', 'ধরন': m.movement_type, 'পরিমাণ': m.qty, 'রিজন': m.reason || '', 'সূত্র': m.reference || '', 'আগে': m.stock_before, 'পরে': m.stock_after }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryRows), 'Summary by Reason');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(txRows), 'Transactions');
+            const month = document.getElementById('histMonth').value || 'All';
+            XLSX.writeFile(wb, `Stock_History_${month}.xlsx`);
         }
 
         async function executeStockAction(e) {
@@ -1494,6 +1821,9 @@
             if (!p) return;
 
             let current = Number(p.stock) || 0;
+            const reasonEl = document.getElementById('stockActionReason');
+            const reason = reasonEl && reasonEl.value ? reasonEl.value : (type === 'IN' ? 'ক্রয়' : 'বিক্রি - দোকান');
+            const ref = document.getElementById('stockActionRef').value.trim();
             if (type === 'IN') {
                 p.stock = current + qty;
                 showToast(`+${qty} পিস স্টক সফলভাবে যুক্ত হয়েছে`, 'check');
@@ -1507,9 +1837,15 @@
             }
 
             await saveProductToDB(p);
+            await recordMovement({ product_id: p.id, sku: p.sku, product_name: p.name, movement_type: type, qty: qty, reason: reason, reference: ref, stock_before: current, stock_after: p.stock, created_at: new Date().toISOString() });
+            const hitZero = (type === 'OUT' && p.stock === 0);
             products = await loadAllProductsFromDB();
             closeStockActionModal();
             applyFilters();
+            if (hitZero) {
+                showToast('স্টক শেষ! এই পোশাকের ফুল হিস্টোরি দেখানো হচ্ছে', 'alert-circle');
+                await openHistoryModal({ productId: p.id, full: true });
+            }
         }
 
         // ==================== 9. EXCEL (XLSX) IMPORT & EXPORT ====================
@@ -1696,6 +2032,7 @@
         window.onload = async function() {
             try {
                 await initDB();
+                await loadReasons();
                 await checkAuthSession();
                 const savedCategories = await getSetting('custom_categories');
                 if (savedCategories && Array.isArray(savedCategories)) {
