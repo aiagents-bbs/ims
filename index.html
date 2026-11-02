@@ -92,6 +92,17 @@
                         </button>
                     </form>
 
+                    <div class="flex items-center gap-3 my-5">
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                        <span class="text-[11px] text-slate-400">অথবা</span>
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                    </div>
+                    <button type="button" onclick="enterViewMode()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-2xl transition flex items-center justify-center gap-2">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        <span>শুধু দেখুন — ভিউ মোড (পিন লাগবে না)</span>
+                    </button>
+                    <p class="text-[11px] text-slate-400 mt-2">ভিউ মোডে শুধু দেখা যাবে, এডিট করা যাবে না। শেয়ার লিংক: এই সাইটের ঠিকানার শেষে <span class="font-mono">?mode=view</span> যোগ করুন।</p>
+
                     <div class="mt-6 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 text-[11px] text-slate-500">
                         <p>ডিফল্ট পাসওয়ার্ড: <span class="font-mono font-bold text-slate-800 bg-white border border-amber-200 px-2 py-0.5 rounded-md">1234</span></p>
                         <p class="mt-1">ভেতরে সেটিংস থেকে পাসওয়ার্ড পরিবর্তন করা যাবে</p>
@@ -127,7 +138,7 @@
 
             <!-- Desktop Controls -->
             <div class="hidden lg:flex items-center gap-2">
-                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-medium py-2 px-3 rounded-lg inline-flex items-center gap-1.5 transition">
+                <label class="edit-only cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-medium py-2 px-3 rounded-lg inline-flex items-center gap-1.5 transition">
                     <i data-lucide="file-up" class="w-4 h-4 text-emerald-400"></i>
                     <span>এক্সেল ইমপোর্ট</span>
                     <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelImport(event)">
@@ -143,7 +154,7 @@
                     <span>JSON ব্যাকআপ</span>
                 </button>
 
-                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-medium py-2 px-2.5 rounded-lg inline-flex items-center gap-1 transition" title="ব্যাকআপ রিস্টোর">
+                <label class="edit-only cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-medium py-2 px-2.5 rounded-lg inline-flex items-center gap-1 transition" title="ব্যাকআপ রিস্টোর">
                     <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-400"></i>
                     <span>রিস্টোর</span>
                     <input type="file" accept=".json" class="hidden" onchange="restoreSystemBackup(event)">
@@ -159,12 +170,12 @@
                     <span>data.json</span>
                 </button>
 
-                <button onclick="openProductModal()" class="bg-brand-accent hover:bg-opacity-90 text-white text-xs font-semibold py-2 px-3.5 rounded-lg inline-flex items-center gap-1.5 transition shadow">
+                <button onclick="openProductModal()" class="edit-only bg-brand-accent hover:bg-opacity-90 text-white text-xs font-semibold py-2 px-3.5 rounded-lg inline-flex items-center gap-1.5 transition shadow">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i>
                     <span>নতুন পোশাক যোগ</span>
                 </button>
 
-                <button onclick="openSecurityModal()" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg" title="পাসওয়ার্ড পরিবর্তন">
+                <button onclick="openSecurityModal()" class="edit-only p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg" title="পাসওয়ার্ড পরিবর্তন">
                     <i data-lucide="shield-check" class="w-4 h-4"></i>
                 </button>
 
@@ -175,7 +186,7 @@
 
             <!-- Mobile Quick Header Button -->
             <div class="flex lg:hidden items-center gap-2">
-                <button onclick="openProductModal()" class="bg-brand-accent text-white p-2 rounded-xl text-xs flex items-center gap-1 shadow">
+                <button onclick="openProductModal()" class="edit-only bg-brand-accent text-white p-2 rounded-xl text-xs flex items-center gap-1 shadow">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                     <span class="text-xs font-medium">নতুন পোশাক</span>
                 </button>
@@ -188,7 +199,7 @@
         <!-- Mobile Drawer -->
         <div id="mobileDrawer" class="hidden lg:hidden bg-brand-800 border-t border-brand-700 px-4 py-3 space-y-2">
             <div class="grid grid-cols-2 gap-2 text-xs">
-                <label class="cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-slate-200">
+                <label class="edit-only cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-slate-200">
                     <i data-lucide="file-up" class="w-4 h-4 text-emerald-400"></i>
                     <span>এক্সেল ইমপোর্ট</span>
                     <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelImport(event)">
@@ -201,7 +212,7 @@
                     <i data-lucide="hard-drive-download" class="w-4 h-4"></i>
                     <span>JSON ব্যাকআপ</span>
                 </button>
-                <label class="cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-amber-300">
+                <label class="edit-only cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 text-amber-300">
                     <i data-lucide="hard-drive-upload" class="w-4 h-4"></i>
                     <span>রিস্টোর</span>
                     <input type="file" accept=".json" class="hidden" onchange="restoreSystemBackup(event)">
@@ -216,7 +227,7 @@
                 <span>data.json ডাউনলোড</span>
             </button>
             <div class="flex items-center justify-between pt-2 border-t border-brand-700/60 text-xs">
-                <button onclick="openSecurityModal()" class="text-slate-300 flex items-center gap-1.5 py-1">
+                <button onclick="openSecurityModal()" class="edit-only text-slate-300 flex items-center gap-1.5 py-1">
                     <i data-lucide="key" class="w-4 h-4 text-amber-400"></i> পাসওয়ার্ড পরিবর্তন
                 </button>
                 <button onclick="logoutSession()" class="text-rose-300 flex items-center gap-1.5 py-1">
@@ -227,6 +238,10 @@
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <div id="modeBanner" class="hidden bg-cyan-50 border border-cyan-200 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span class="font-semibold text-cyan-800 flex items-center gap-2"><i data-lucide="eye" class="w-4 h-4"></i> ভিউ মোড — আপনি শুধু দেখতে পারবেন, এডিট করতে পারবেন না।</span>
+            <button onclick="logoutSession()" class="px-3 py-1.5 bg-slate-800 text-white rounded-xl font-medium">এডিট মোডে যান (পিন লাগবে)</button>
+        </div>
 
         <!-- KPI Metrics -->
         <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -674,7 +689,7 @@
                     <button onclick="showFullHistory()" class="px-3 py-2 bg-slate-800 text-white rounded-xl font-medium">ফুল হিস্টোরি</button>
                     <button onclick="showCurrentMonthHistory()" class="px-3 py-2 border border-slate-300 rounded-xl font-medium">এই মাস</button>
                     <button onclick="exportHistoryToExcel()" class="px-3 py-2 bg-emerald-600 text-white rounded-xl font-medium">এক্সেল এক্সপোর্ট</button>
-                    <button onclick="openReasonManager()" class="px-3 py-2 border border-slate-300 rounded-xl font-medium">রিজন ম্যানেজ</button>
+                    <button onclick="openReasonManager()" class="edit-only px-3 py-2 border border-slate-300 rounded-xl font-medium">রিজন ম্যানেজ</button>
                 </div>
                 <div id="histSummary" class="grid grid-cols-3 gap-2 text-center"></div>
                 <div>
@@ -1175,10 +1190,37 @@
         }
 
         // ==================== 3. AUTHENTICATION & SESSION ====================
+        let appMode = 'edit';
+        function isViewMode() { return appMode === 'view'; }
+        function requireEdit() {
+            if (isViewMode()) { showToast('ভিউ মোডে এডিট করা যাবে না', 'alert-circle'); return false; }
+            return true;
+        }
+        function applyModeUI() {
+            const view = isViewMode();
+            document.querySelectorAll('.edit-only').forEach(el => el.classList.toggle('hidden', view));
+            const banner = document.getElementById('modeBanner');
+            if (banner) banner.classList.toggle('hidden', !view);
+            if (products && products.length) { try { applyFilters(); } catch (e) {} }
+            lucide.createIcons();
+        }
+        function enterViewMode() {
+            appMode = 'view';
+            sessionStorage.setItem('voguestock_auth', 'view');
+            document.getElementById('loginScreen').classList.add('hidden');
+            applyModeUI();
+            showToast('ভিউ মোড — শুধু দেখা যাবে', 'check');
+        }
         async function checkAuthSession() {
             const isAuth = sessionStorage.getItem('voguestock_auth');
             if (isAuth === 'true') {
+                appMode = 'edit';
                 document.getElementById('loginScreen').classList.add('hidden');
+                applyModeUI();
+            } else if (isAuth === 'view') {
+                appMode = 'view';
+                document.getElementById('loginScreen').classList.add('hidden');
+                applyModeUI();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
@@ -1191,7 +1233,9 @@
 
             if (inputVal === savedPass) {
                 sessionStorage.setItem('voguestock_auth', 'true');
+                appMode = 'edit';
                 document.getElementById('loginScreen').classList.add('hidden');
+                applyModeUI();
                 document.getElementById('loginErrorMsg').classList.add('hidden');
                 showToast('স্বাগতম! আপনি সফলভাবে লগইন করেছেন', 'check');
             } else {
@@ -1201,12 +1245,16 @@
 
         function logoutSession() {
             sessionStorage.removeItem('voguestock_auth');
+            appMode = 'edit';
+            const banner = document.getElementById('modeBanner');
+            if (banner) banner.classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginPasswordInput').value = '';
             document.getElementById('mobileDrawer').classList.add('hidden');
         }
 
         function openSecurityModal() {
+            if (!requireEdit()) return;
             document.getElementById('securityModal').classList.remove('hidden');
             document.getElementById('currentPassInput').value = '';
             document.getElementById('newPassInput').value = '';
@@ -1404,12 +1452,12 @@
                         <td class="p-3 text-center text-xs whitespace-nowrap">${fmtProductDate(p.created_at)}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-1.5">
-                                ${stock > 0 ? `
+                                ${isViewMode() ? (stock === 0 ? `<button onclick="openHistoryModal({productId: '${p.id}', full: true})" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1" title="এই লটের ফুল হিস্টোরি"><i data-lucide="history" class="w-3.5 h-3.5"></i>রেকর্ড</button>` : `<span class="text-slate-300 text-xs">—</span>`) : (stock > 0 ? `
                                 <button onclick="openStockModal('${p.id}', 'IN')" class="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs" title="স্টক ইন"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="openStockModal('${p.id}', 'OUT')" class="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs" title="স্টক আউট"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>` : `
-                                <button onclick="openHistoryModal({productId: '${p.id}', full: true})" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1" title="এই লটের ফুল হিস্টোরি"><i data-lucide="history" class="w-3.5 h-3.5"></i>রেকর্ড</button>`}
-                                <button onclick="editProduct('${p.id}')" class="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs" title="এডিট"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="confirmDelete('${p.id}')" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs" title="মুছুন"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="openHistoryModal({productId: '${p.id}', full: true})" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1" title="এই লটের ফুল হিস্টোরি"><i data-lucide="history" class="w-3.5 h-3.5"></i>রেকর্ড</button>`)}
+                                ${isViewMode() ? '' : `<button onclick="editProduct('${p.id}')" class="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs" title="এডিট"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="confirmDelete('${p.id}')" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs" title="মুছুন"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`}
                             </div>
                         </td>
                     </tr>
@@ -1429,6 +1477,7 @@
         }
 
         function openProductModal() {
+            if (!requireEdit()) return;
             document.getElementById('productForm').reset();
             document.getElementById('editProductId').value = '';
             document.getElementById('productModalTitle').innerHTML = '<i data-lucide="tag" class="w-5 h-5 text-brand-accent"></i> নতুন পোশাক নিবন্ধন';
@@ -1443,6 +1492,7 @@
         }
 
         function editProduct(id) {
+            if (!requireEdit()) return;
             const p = products.find(item => item.id === id);
             if (!p) return;
 
@@ -1478,6 +1528,7 @@
 
         async function saveProduct(e) {
             e.preventDefault();
+            if (!requireEdit()) return;
             const editId = document.getElementById('editProductId').value;
             const sku = document.getElementById('pSku').value.trim();
             const name = document.getElementById('pName').value.trim();
@@ -1542,6 +1593,7 @@
         }
 
         async function confirmDelete(id) {
+            if (!requireEdit()) return;
             const p = products.find(x => x.id === id);
             if (!p) return;
             if (confirm(`আপনি কি নিশ্চিত যে "${p.name} (${p.sku})" ডিলিট করবেন?`)) {
@@ -1554,6 +1606,7 @@
 
         // ==================== 8. STOCK IN / OUT ACTIONS ====================
         async function openStockModal(productId, actionType) {
+            if (!requireEdit()) return;
             const p = products.find(x => x.id === productId);
             if (!p) return;
 
@@ -1679,7 +1732,7 @@
             sel.innerHTML = list.map(r => `<option value="${r.label}">${r.label}</option>`).join('');
             if (list.length === 0) sel.innerHTML = '<option value="অন্যান্য">অন্যান্য</option>';
         }
-        function openReasonManager() { renderReasonList(); document.getElementById('reasonModal').classList.remove('hidden'); lucide.createIcons(); }
+        function openReasonManager() { if (!requireEdit()) return; renderReasonList(); document.getElementById('reasonModal').classList.remove('hidden'); lucide.createIcons(); }
         function closeReasonManager() { document.getElementById('reasonModal').classList.add('hidden'); }
         function renderReasonList() {
             const el = document.getElementById('reasonList');
@@ -1690,6 +1743,7 @@
         }
         async function addReasonSubmit(e) {
             e.preventDefault();
+            if (!requireEdit()) return;
             const label = document.getElementById('newReasonLabel').value.trim();
             const type = document.getElementById('newReasonType').value;
             if (!label) return;
@@ -1711,12 +1765,14 @@
             showToast('নতুন রিজন যোগ হয়েছে', 'check');
         }
         async function deleteReason(id) {
+            if (!requireEdit()) return;
             if (supabaseClient) { try { await supabaseClient.from('stock_reasons').delete().eq('id', id); } catch (e) {} }
             await deleteReasonFromIDB(id);
             stockReasons = stockReasons.filter(r => String(r.id) !== String(id));
             renderReasonList(); populateReasonDropdown(document.getElementById('stockActionType') ? document.getElementById('stockActionType').value : 'OUT');
         }
         async function restoreDefaultReasons() {
+            if (!requireEdit()) return;
             for (const r of DEFAULT_REASONS) {
                 if (!stockReasons.some(x => x.label === r.label && x.movement_type === r.movement_type)) {
                     if (supabaseClient) { try { const { data } = await supabaseClient.from('stock_reasons').insert({ label: r.label, movement_type: r.movement_type, is_default: true }).select().single(); if (data) stockReasons.push(data); continue; } catch (e) {} }
@@ -1831,6 +1887,7 @@
 
         async function executeStockAction(e) {
             e.preventDefault();
+            if (!requireEdit()) return;
             const id = document.getElementById('stockActionProductId').value;
             const type = document.getElementById('stockActionType').value;
             const qty = Number(document.getElementById('stockActionQty').value);
@@ -1900,6 +1957,7 @@
         }
 
         function handleExcelImport(e) {
+            if (!requireEdit()) return;
             const file = e.target.files[0];
             if (!file) return;
 
@@ -1994,6 +2052,7 @@
         }
 
         function restoreSystemBackup(e) {
+            if (!requireEdit()) return;
             const file = e.target.files[0];
             if (!file) return;
 
@@ -2053,7 +2112,11 @@
                 await initDB();
                 await loadReasons();
                 await ensurePrimaryStockReason();
-                await checkAuthSession();
+                if (new URLSearchParams(window.location.search).get('mode') === 'view' && sessionStorage.getItem('voguestock_auth') !== 'true') {
+                    enterViewMode();
+                } else {
+                    await checkAuthSession();
+                }
                 const savedCategories = await getSetting('custom_categories');
                 if (savedCategories && Array.isArray(savedCategories)) {
                     categories = savedCategories;
