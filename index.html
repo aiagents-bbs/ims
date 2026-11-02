@@ -1402,11 +1402,12 @@
                         <td class="p-3 text-center text-xs ${statusClass}">${statusLabel}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-1.5">
+                                ${stock > 0 ? `
                                 <button onclick="openStockModal('${p.id}', 'IN')" class="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs" title="স্টক ইন"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="openStockModal('${p.id}', 'OUT')" class="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs" title="স্টক আউট"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="openStockModal('${p.id}', 'OUT')" class="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs" title="স্টক আউট"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>` : `
+                                <button onclick="openHistoryModal({productId: '${p.id}', full: true})" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1" title="এই লটের ফুল হিস্টোরি"><i data-lucide="history" class="w-3.5 h-3.5"></i>রেকর্ড</button>`}
                                 <button onclick="editProduct('${p.id}')" class="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs" title="এডিট"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="confirmDelete('${p.id}')" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs" title="মুছুন"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="openHistoryModal({productId: '${p.id}', full: true})" class="p-1.5 bg-cyan-50 text-cyan-700 hover:bg-cyan-100 rounded-lg text-xs" title="ফুল হিস্টোরি"><i data-lucide="history" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -1526,6 +1527,9 @@
                     image: currentCompressedBase64 || PLACEHOLDER_IMG
                 };
                 await saveProductToDB(newProduct);
+                if (initialStock > 0) {
+                    await recordMovement({ product_id: newProduct.id, sku, product_name: name, movement_type: 'IN', qty: initialStock, reason: 'প্রাথমিক স্টক', reference: 'নতুন লট', stock_before: 0, stock_after: initialStock, created_at: new Date().toISOString() });
+                }
                 showToast('নতুন পোশাক সফলভাবে যুক্ত হয়েছে', 'check');
             }
 
@@ -1575,6 +1579,7 @@
             }
 
             await loadReasons();
+            await ensurePrimaryStockReason();
             populateReasonDropdown(actionType);
             document.getElementById('stockActionModal').classList.remove('hidden');
             lucide.createIcons();
@@ -1589,6 +1594,7 @@
         let stockReasons = [];
         let stockMovements = [];
         const DEFAULT_REASONS = [
+            { label: 'প্রাথমিক স্টক', movement_type: 'IN' },
             { label: 'ক্রয়', movement_type: 'IN' },
             { label: 'কাস্টমার রিটার্ন', movement_type: 'IN' },
             { label: 'উৎপাদন', movement_type: 'IN' },
@@ -1653,6 +1659,14 @@
                 }
             }
             return stockReasons;
+        }
+        async function ensurePrimaryStockReason() {
+            if (stockReasons.some(r => r.label === 'প্রাথমিক স্টক' && r.movement_type === 'IN')) return;
+            if (supabaseClient) {
+                try { const { data } = await supabaseClient.from('stock_reasons').insert({ label: 'প্রাথমিক স্টক', movement_type: 'IN', is_default: true }).select().single(); if (data) { stockReasons.push(data); return; } } catch (e) {}
+            }
+            const rec = { id: 'r-' + Date.now(), label: 'প্রাথমিক স্টক', movement_type: 'IN', is_default: true };
+            await saveReasonToIDB(rec); stockReasons.push(rec);
         }
         function reasonsFor(type) { return stockReasons.filter(r => r.movement_type === type); }
         function populateReasonDropdown(type) {
@@ -2033,6 +2047,7 @@
             try {
                 await initDB();
                 await loadReasons();
+                await ensurePrimaryStockReason();
                 await checkAuthSession();
                 const savedCategories = await getSetting('custom_categories');
                 if (savedCategories && Array.isArray(savedCategories)) {
